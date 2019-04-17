@@ -1,4 +1,4 @@
-# ArcherERP
+# Couchbase grpc
 ## My First Pass thoughts on the potential Couchbase grpc wrapper
 
 ### Getting it
