@@ -1,0 +1,28 @@
+syntax = "proto3";
+package cb_grpc.msg.Main;
+
+option java_multiple_files = true;
+option java_package = "org.querc.cb_grpc.msg.grpc";
+option java_outer_classname = "QueryCouchbase";
+
+
+service QueryService {
+    rpc n1qlQuery (Query) returns (QueryResponse) {}
+
+    rpc kvQuery (DocID) returns (QueryResponse) {}
+}
+
+message Query{
+    string Bucket = 1;
+    string N1QlQuery = 2;
+}
+
+message QueryResponse{
+    string content = 1;
+    string code = 2;
+}
+
+message DocID{
+    string Bucket = 1;
+    string docID = 2;
+}

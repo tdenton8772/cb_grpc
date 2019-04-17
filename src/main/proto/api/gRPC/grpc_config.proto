@@ -1,0 +1,30 @@
+syntax = "proto3";
+package cb_grpc.msg.Main;
+
+option java_multiple_files = true;
+option java_package = "org.querc.cb_grpc.msg.grpc";
+option java_outer_classname = "ConfigCouchbase";
+
+
+service DatabaseService {
+    rpc Connect (InitiateConnection) returns (ConnectionResponse) {}
+}
+
+message InitiateConnection{
+    string clusterUser = 1;
+    string clusterPW = 2;
+    string version = 3;
+    repeated string clusterAddress = 4;
+    uint32 kvTimeout = 5;
+    uint32 queryTimeout = 6;
+    string DBMainPassword = 7;
+    string DBTxnPassword = 8;
+    string DBHxnPassword = 9;
+    string DBMain = 10;
+    string DBTxn = 11;
+    string DBHxn = 12;
+}
+
+message ConnectionResponse{
+    string status = 1;
+}
