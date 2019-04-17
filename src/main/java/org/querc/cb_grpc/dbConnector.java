@@ -1,30 +1,25 @@
 package org.querc.cb_grpc;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.PoisonPill;
 import akka.actor.Props;
-import com.couchbase.client.java.document.RawJsonDocument;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.PersistTo;
+import com.couchbase.client.java.document.RawJsonDocument;
 
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.Properties;
 
 import org.querc.cb_grpc.msg.grpc.*;
-import org.querc.cb_grpc.msg.database;
 
 public class dbConnector extends AbstractActor {
     final ActorSystem system = getContext().getSystem();
@@ -89,8 +84,8 @@ public class dbConnector extends AbstractActor {
                             .build();
                     this.cluster = CouchbaseCluster.create(env, msg.getClusterAddressList());
                     this.bucketMain = cluster.openBucket(msg.getDBMain(), msg.getDBMainPassword());
-                    this.bucketTxn = cluster.openBucket(msg.getDBMain(), msg.getDBTxnPassword());
-                    this.bucketHxn = cluster.openBucket(msg.getDBMain(), msg.getDBHxnPassword());
+                    this.bucketTxn = cluster.openBucket(msg.getDBTxn(), msg.getDBTxnPassword());
+                    this.bucketHxn = cluster.openBucket(msg.getDBHxn(), msg.getDBHxnPassword());
                     N1qlQueryResult holdingVar = this.bucketMain.query(N1qlQuery.simple("Select * from `" + msg.getDBMain() + "` limit 1;"));
                     return "Successful";
                 } else {
@@ -114,6 +109,55 @@ public class dbConnector extends AbstractActor {
         }
     }
 
+    protected QueryResponse cbQuery(Query msg) throws InvalidProtocolBufferException {
+        try { 
+            N1qlQueryResult holdingVar = this.bucketMain.query(N1qlQuery.simple(msg.getN1QlQuery()));
+            QueryResponse reply = QueryResponse.newBuilder()
+                    .setCode("Success")
+                    .setContent(holdingVar.allRows().toString())
+                    .build();
+            return reply;
+        } catch (Exception e) {
+            QueryResponse reply = QueryResponse.newBuilder()
+                    .setCode("Failed")
+                    .setContent(e.toString())
+                    .build();
+            return reply;
+        }
+    }
+    
+    protected QueryResponse kvQuery(DocID msg) throws InvalidProtocolBufferException {
+        Bucket queryBucket;
+        System.out.println(msg.getBucket().toString());
+        if (msg.getBucket().toString().equals("main")){
+            queryBucket = this.bucketMain;
+        } else if (msg.getBucket().toString().equals("txn")){
+            queryBucket = this.bucketTxn;
+        } else if (msg.getBucket().toString().equals("hxn")){
+            queryBucket = this.bucketHxn;
+        } else {
+            QueryResponse reply = QueryResponse.newBuilder()
+                    .setCode("Failed")
+                    .build();
+            return reply;
+        } 
+        
+        try{
+            RawJsonDocument doc = queryBucket.get(msg.getDocID(), RawJsonDocument.class);
+            QueryResponse reply = QueryResponse.newBuilder()
+                    .setCode("Success")
+                    .setContent(doc.content())
+                    .build();
+            return reply;
+        } catch (Exception e){
+            QueryResponse reply = QueryResponse.newBuilder()
+                    .setCode("Failed")
+                    .setContent(e.toString())
+                    .build();
+            return reply;
+        }
+    }
+    
     @Override
     public Receive createReceive(){
         return receiveBuilder()
@@ -122,7 +166,14 @@ public class dbConnector extends AbstractActor {
                     System.out.println("Message: " + message);
                     getSender().tell(message, getSelf());
                 })
-
+                .match(Query.class, (msg) ->{
+                    QueryResponse message = cbQuery(msg);
+                    getSender().tell(message, getSelf());
+                })
+                .match(DocID.class, (msg)->{
+                    QueryResponse message = kvQuery(msg);
+                    getSender().tell(message, getSelf());
+                })
             .matchAny(o -> System.out.println("Unknown Message in dbConnector: " + o))
             .build();
     }

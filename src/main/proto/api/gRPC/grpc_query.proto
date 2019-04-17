@@ -12,9 +12,14 @@ service QueryService {
     rpc kvQuery (DocID) returns (QueryResponse) {}
 }
 
+enum Buckets {
+    main = 0;
+    txn = 1;
+    hxn = 2;
+   }
+
 message Query{
-    string Bucket = 1;
-    string N1QlQuery = 2;
+    string N1QlQuery = 1;
 }
 
 message QueryResponse{
@@ -23,6 +28,6 @@ message QueryResponse{
 }
 
 message DocID{
-    string Bucket = 1;
+    Buckets bucket = 1;
     string docID = 2;
 }

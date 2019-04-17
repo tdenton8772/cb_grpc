@@ -25,35 +25,38 @@ public class QueryServiceImpl implements QueryService{
     @Override
     public CompletionStage<QueryResponse> n1qlQuery(Query in){
         System.out.println("n1ql query");
-        String result = new String("");
+//        String result = new String("");
+        QueryResponse result;
         try {
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), in, 5000);
-            result = (String) Await.result(future, Duration.apply(5, "seconds"));
+            result = (QueryResponse) Await.result(future, Duration.apply(5, "seconds"));
         } catch (Exception e){
-            System.out.println("Ask error:" + e);
+            result = QueryResponse.newBuilder()
+                    .setCode("Failed")
+                    .setContent(e.toString())
+                    .build();
         }
 
-        QueryResponse reply = QueryResponse.newBuilder()
-                .setContent(result)
-                .build();
-        return CompletableFuture.completedFuture(reply);
+//        QueryResponse reply = QueryResponse.newBuilder()
+//                .setContent(result)
+//                .build();
+        return CompletableFuture.completedFuture(result);
     }
     
     @Override
     public CompletionStage<QueryResponse> kvQuery(DocID in){
         System.out.println("kv query");
-        String result = new String("");
+        QueryResponse result;
         try {
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), in, 5000);
-            result = (String) Await.result(future, Duration.apply(5, "seconds"));
+            result = (QueryResponse) Await.result(future, Duration.apply(5, "seconds"));
         } catch (Exception e){
-            System.out.println("Ask error:" + e);
+            result = QueryResponse.newBuilder()
+                    .setCode("Failed")
+                    .setContent(e.toString())
+                    .build();
         }
-
-        QueryResponse reply = QueryResponse.newBuilder()
-                .setContent(result)
-                .build();
-        return CompletableFuture.completedFuture(reply);
+        return CompletableFuture.completedFuture(result);
     }
     
 }
