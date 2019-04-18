@@ -1,0 +1,23 @@
+syntax = "proto3";
+package cb_grpc.msg.Main;
+
+import "api/gRPC/grpc_query.proto";
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "internal_messages";
+
+message kvget {
+    repeated DocID doc = 1;
+}
+
+message kvput {
+    repeated JsonID doc = 1;
+}
+
+message kvdelete {
+    repeated DocID doc = 1;
+}
+
+message kvupsert {
+    repeated JsonID doc = 1;
+}

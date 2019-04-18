@@ -4,6 +4,7 @@ package cb_grpc.msg.Main;
 option java_package = "org.querc.cb_grpc.msg";
 option java_outer_classname = "database";
 
+
 message Connected {
 
 }

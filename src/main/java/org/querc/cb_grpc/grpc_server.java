@@ -48,11 +48,11 @@ public class grpc_server extends AbstractActor {
     public static CompletionStage<List<ServerBinding>> run(ActorSystem system) throws Exception {
         Materializer mat = ActorMaterializer.create(system);
         
-        Function<HttpRequest, CompletionStage<HttpResponse>> greeterService =
+        Function<HttpRequest, CompletionStage<HttpResponse>> queryService =
                 org.querc.cb_grpc.msg.grpc.QueryServiceHandlerFactory.create(new org.querc.cb_grpc.msg.QueryServiceImpl(system, mat), mat, system);
         
         Function<HttpRequest, CompletionStage<HttpResponse>> serviceHandlers =
-                ServiceHandler.concatOrNotFound(greeterService);
+                ServiceHandler.concatOrNotFound(queryService);
 
         CompletionStage<ServerBinding> binding1 = Http.get(system).bindAndHandleAsync(
                 serviceHandlers,

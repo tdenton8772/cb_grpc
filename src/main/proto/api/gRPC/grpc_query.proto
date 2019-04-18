@@ -5,11 +5,16 @@ option java_multiple_files = true;
 option java_package = "org.querc.cb_grpc.msg.grpc";
 option java_outer_classname = "QueryCouchbase";
 
-
 service QueryService {
     rpc n1qlQuery (Query) returns (QueryResponse) {}
 
-    rpc kvQuery (DocID) returns (QueryResponse) {}
+    rpc kvGet (DocID) returns (QueryResponse) {}
+    
+    rpc kvDelete (DocID) returns (QueryResponse) {}
+    
+    rpc kvPut (JsonID) returns (QueryResponse) {}
+
+    rpc kvUpsert (JsonID) returns (QueryResponse) {}
 }
 
 enum Buckets {
@@ -30,4 +35,10 @@ message QueryResponse{
 message DocID{
     Buckets bucket = 1;
     string docID = 2;
+}
+
+message JsonID{
+    Buckets bucket = 1;
+    string docID = 2;
+    string document = 3;
 }
