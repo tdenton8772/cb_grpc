@@ -22,10 +22,15 @@ import com.couchbase.client.java.transcoder.JsonTranscoder;
 import java.util.*;
 import java.util.Properties;
 
+import org.javers.core.Javers;
+import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Diff;
+
 import org.querc.cb_grpc.msg.grpc.*;
 import org.querc.cb_grpc.msg.internal_messages;
 
 public class dbConnector extends AbstractActor {
+
     final ActorSystem system = getContext().getSystem();
     private Properties m_props;
     static private Cluster cluster;
@@ -35,11 +40,11 @@ public class dbConnector extends AbstractActor {
     static private JsonFormat.Printer printer;
     static private JsonTranscoder trans;
 
-    static public Props props(Properties p){
+    static public Props props(Properties p) {
         return Props.create(dbConnector.class, () -> new dbConnector(p));
     }
-    
-    public dbConnector(Properties p){
+
+    public dbConnector(Properties p) {
         this.printer = JsonFormat.printer().includingDefaultValueFields();
         this.trans = new JsonTranscoder();
         System.out.println(getSelf());
@@ -48,7 +53,7 @@ public class dbConnector extends AbstractActor {
         List<String> nodes = Arrays.asList(dbClusterList.split("\\s*,\\s*"));
         String cbVersion = m_props.getProperty("DBVersion");
 
-        if(Boolean.parseBoolean(m_props.getProperty("UseDatabase")) == true) {
+        if (Boolean.parseBoolean(m_props.getProperty("UseDatabase")) == true) {
             if (cbVersion.equals("4") || cbVersion.equals("4.5") || cbVersion.equals("4.5.1")) {
                 CouchbaseEnvironment env = DefaultCouchbaseEnvironment
                         .builder()
@@ -74,14 +79,14 @@ public class dbConnector extends AbstractActor {
             N1qlQueryResult holdingVar = this.bucketMain.query(N1qlQuery.simple("Select * from `" + m_props.getProperty("DBMain") + "` limit 1;"));
         }
     }
-    
+
     protected String EstablishConnection(InitiateConnection msg) throws InvalidProtocolBufferException {
-        try{
+        try {
             N1qlQueryResult holdingVar = this.bucketMain.query(N1qlQuery.simple("Select * from " + m_props.getProperty("DBMain") + " limit 1;"));
             return "Connection already established";
         } catch (Exception e) {
             System.out.println("Expected Error while setting up connection: " + e);
-            try{
+            try {
                 if (msg.getVersion().equals("4") || msg.getVersion().equals("4.5") || msg.getVersion().equals("4.5.1")) {
                     CouchbaseEnvironment env = DefaultCouchbaseEnvironment
                             .builder()
@@ -116,7 +121,7 @@ public class dbConnector extends AbstractActor {
     }
 
     protected QueryResponse cbQuery(Query msg) throws InvalidProtocolBufferException {
-        try { 
+        try {
             N1qlQueryResult holdingVar = this.bucketMain.query(N1qlQuery.simple(msg.getN1QlQuery()));
             QueryResponse reply = QueryResponse.newBuilder()
                     .setCode("Success")
@@ -131,34 +136,34 @@ public class dbConnector extends AbstractActor {
             return reply;
         }
     }
-    
+
     protected List<QueryResponse> kvGet(internal_messages.kvget msg) throws InvalidProtocolBufferException {
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
-        
-        for (DocID subMsg : msg.getDocList()){
+
+        for (DocID subMsg : msg.getDocList()) {
             System.out.println(subMsg.getBucket().toString());
-            if (subMsg.getBucket().toString().equals("main")){
+            if (subMsg.getBucket().toString().equals("main")) {
                 queryBucket = this.bucketMain;
-            } else if (subMsg.getBucket().toString().equals("txn")){
+            } else if (subMsg.getBucket().toString().equals("txn")) {
                 queryBucket = this.bucketTxn;
-            } else if (subMsg.getBucket().toString().equals("hxn")){
+            } else if (subMsg.getBucket().toString().equals("hxn")) {
                 queryBucket = this.bucketHxn;
             } else {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .build();
                 responses.add(reply);
-            } 
+            }
 
-            try{
+            try {
                 RawJsonDocument doc = queryBucket.get(subMsg.getDocID(), RawJsonDocument.class);
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Success")
                         .setContent(doc.content())
                         .build();
                 responses.add(reply);
-            } catch (Exception e){
+            } catch (Exception e) {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .setContent(e.toString())
@@ -168,27 +173,27 @@ public class dbConnector extends AbstractActor {
         }
         return responses;
     }
-    
+
     protected List<QueryResponse> kvDelete(internal_messages.kvdelete msg) throws InvalidProtocolBufferException {
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
-        
-        for (DocID subMsg : msg.getDocList()){
+
+        for (DocID subMsg : msg.getDocList()) {
             System.out.println(subMsg.getBucket().toString());
-            if (subMsg.getBucket().toString().equals("main")){
+            if (subMsg.getBucket().toString().equals("main")) {
                 queryBucket = this.bucketMain;
-            } else if (subMsg.getBucket().toString().equals("txn")){
+            } else if (subMsg.getBucket().toString().equals("txn")) {
                 queryBucket = this.bucketTxn;
-            } else if (subMsg.getBucket().toString().equals("hxn")){
+            } else if (subMsg.getBucket().toString().equals("hxn")) {
                 queryBucket = this.bucketHxn;
             } else {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .build();
                 responses.add(reply);
-            } 
+            }
 
-            try{
+            try {
                 RawJsonDocument doc = queryBucket.remove(subMsg.getDocID(), RawJsonDocument.class);
                 System.out.print(doc);
                 QueryResponse reply = QueryResponse.newBuilder()
@@ -196,7 +201,7 @@ public class dbConnector extends AbstractActor {
                         .setContent(doc.id())
                         .build();
                 responses.add(reply);
-            } catch (Exception e){
+            } catch (Exception e) {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .setContent(e.toString())
@@ -206,28 +211,28 @@ public class dbConnector extends AbstractActor {
         }
         return responses;
     }
-    
-        protected List<QueryResponse> kvPut(internal_messages.kvput msg) throws InvalidProtocolBufferException {
+
+    protected List<QueryResponse> kvPut(internal_messages.kvput msg) throws InvalidProtocolBufferException {
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
-        
-        for (JsonID subMsg : msg.getDocList()){
+
+        for (JsonID subMsg : msg.getDocList()) {
             System.out.println(subMsg.getBucket().toString());
-            if (subMsg.getBucket().toString().equals("main")){
+            if (subMsg.getBucket().toString().equals("main")) {
                 queryBucket = this.bucketMain;
-            } else if (subMsg.getBucket().toString().equals("txn")){
+            } else if (subMsg.getBucket().toString().equals("txn")) {
                 queryBucket = this.bucketTxn;
-            } else if (subMsg.getBucket().toString().equals("hxn")){
+            } else if (subMsg.getBucket().toString().equals("hxn")) {
                 queryBucket = this.bucketHxn;
             } else {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .build();
                 responses.add(reply);
-            } 
+            }
 
-            try{
-                JsonDocument doc = JsonDocument.create(subMsg.getDocID(),  JsonObject.fromJson(subMsg.getDocument()));
+            try {
+                JsonDocument doc = JsonDocument.create(subMsg.getDocID(), JsonObject.fromJson(subMsg.getDocument()));
                 JsonDocument result = queryBucket.insert(doc);
                 System.out.println(result);
                 QueryResponse reply = QueryResponse.newBuilder()
@@ -235,7 +240,7 @@ public class dbConnector extends AbstractActor {
                         .setContent(result.content().toString())
                         .build();
                 responses.add(reply);
-            } catch (Exception e){
+            } catch (Exception e) {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .setContent(e.toString())
@@ -245,29 +250,53 @@ public class dbConnector extends AbstractActor {
         }
         return responses;
     }
-        
-    protected List<QueryResponse> kvUpsert(internal_messages.kvupsert msg) throws InvalidProtocolBufferException {
+
+    protected List<QueryResponse> kvUpsert(internal_messages.kvupsert msg) throws InvalidProtocolBufferException{
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
-        
-        for (JsonID subMsg : msg.getDocList()){
+
+        for (JsonID subMsg : msg.getDocList()) {
             System.out.println(subMsg.getBucket().toString());
-            if (subMsg.getBucket().toString().equals("main")){
+            if (subMsg.getBucket().toString().equals("main")) {
                 queryBucket = this.bucketMain;
-            } else if (subMsg.getBucket().toString().equals("txn")){
+            } else if (subMsg.getBucket().toString().equals("txn")) {
                 queryBucket = this.bucketTxn;
-            } else if (subMsg.getBucket().toString().equals("hxn")){
+            } else if (subMsg.getBucket().toString().equals("hxn")) {
                 queryBucket = this.bucketHxn;
             } else {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .build();
                 responses.add(reply);
-            } 
+            }
 
-            try{
-                
-                JsonDocument doc = JsonDocument.create(subMsg.getDocID(),  this.trans.stringToJsonObject(subMsg.getDocument()));
+            try {
+
+                internal_messages.kvget testMsg = internal_messages.kvget.newBuilder()
+                        .addDoc(DocID.newBuilder()
+                                .setBucket(subMsg.getBucket())
+                                .setDocID(subMsg.getDocID())
+                                .build())
+                        .build();
+
+                List<QueryResponse> reply_msg = kvGet(testMsg);
+
+                QueryResponse response = reply_msg.get(0);
+                JsonObject p1 = this.trans.stringToJsonObject(response.getContent());
+                JsonObject p2 = this.trans.stringToJsonObject(subMsg.getDocument());
+                if (this.trans.stringToJsonObject(response.getContent()).equals(this.trans.stringToJsonObject(subMsg.getDocument()))) {
+                    System.out.println("They Match");
+                } else {
+                    System.out.println("They Dont Match");
+//                    Need to add logic here to record changes in txn (first need to figure out how to get differeces.
+                    
+                    Javers j = JaversBuilder.javers().build();
+                    Diff diff = j.compare(p1, p2);
+                    if (diff.hasChanges()) {
+                        System.out.println(diff);
+                    }
+                }
+                JsonDocument doc = JsonDocument.create(subMsg.getDocID(), this.trans.stringToJsonObject(subMsg.getDocument()));
                 JsonDocument result = queryBucket.upsert(doc);
                 System.out.println(result);
                 QueryResponse reply = QueryResponse.newBuilder()
@@ -275,7 +304,7 @@ public class dbConnector extends AbstractActor {
                         .setContent(result.content().toString())
                         .build();
                 responses.add(reply);
-            } catch (Exception e){
+            } catch (Exception e) {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .setContent(e.toString())
@@ -285,36 +314,36 @@ public class dbConnector extends AbstractActor {
         }
         return responses;
     }
-    
+
     @Override
-    public Receive createReceive(){
+    public Receive createReceive() {
         return receiveBuilder()
-                .match(InitiateConnection.class, (msg) ->{
+                .match(InitiateConnection.class, (msg) -> {
                     String message = EstablishConnection(msg);
                     System.out.println("Message: " + message);
                     getSender().tell(message, getSelf());
                 })
-                .match(Query.class, (msg) ->{
+                .match(Query.class, (msg) -> {
                     QueryResponse message = cbQuery(msg);
                     getSender().tell(message, getSelf());
                 })
-                .match(internal_messages.kvget.class, (msg)->{
+                .match(internal_messages.kvget.class, (msg) -> {
                     List<QueryResponse> message = kvGet(msg);
                     getSender().tell(message, getSelf());
                 })
-                .match(internal_messages.kvdelete.class, (msg)->{
+                .match(internal_messages.kvdelete.class, (msg) -> {
                     List<QueryResponse> message = kvDelete(msg);
                     getSender().tell(message, getSelf());
                 })
-                .match(internal_messages.kvput.class,(msg) ->{
-                   List<QueryResponse> message = kvPut(msg);
+                .match(internal_messages.kvput.class, (msg) -> {
+                    List<QueryResponse> message = kvPut(msg);
                     getSender().tell(message, getSelf());
                 })
-                .match(internal_messages.kvupsert.class,(msg) ->{
+                .match(internal_messages.kvupsert.class, (msg) -> {
                     List<QueryResponse> message = kvUpsert(msg);
                     getSender().tell(message, getSelf());
                 })
-            .matchAny(o -> System.out.println("Unknown Message in dbConnector: " + o))
-            .build();
+                .matchAny(o -> System.out.println("Unknown Message in dbConnector: " + o))
+                .build();
     }
 }
