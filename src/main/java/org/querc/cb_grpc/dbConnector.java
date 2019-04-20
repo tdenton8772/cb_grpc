@@ -21,10 +21,13 @@ import com.couchbase.client.java.transcoder.JsonTranscoder;
 
 import java.util.*;
 import java.util.Properties;
+import java.time.Instant;
 
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
+import static org.javers.core.JaversBuilder.javers;
 import org.javers.core.diff.Diff;
+import org.querc.cb_grpc.msg.database;
 
 import org.querc.cb_grpc.msg.grpc.*;
 import org.querc.cb_grpc.msg.internal_messages;
@@ -138,11 +141,12 @@ public class dbConnector extends AbstractActor {
     }
 
     protected List<QueryResponse> kvGet(internal_messages.kvget msg) throws InvalidProtocolBufferException {
+        System.out.println("Got here_4");
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
 
         for (DocID subMsg : msg.getDocList()) {
-            System.out.println(subMsg.getBucket().toString());
+            System.out.println(subMsg.getDocID().toString());
             if (subMsg.getBucket().toString().equals("main")) {
                 queryBucket = this.bucketMain;
             } else if (subMsg.getBucket().toString().equals("txn")) {
@@ -163,12 +167,14 @@ public class dbConnector extends AbstractActor {
                         .setContent(doc.content())
                         .build();
                 responses.add(reply);
+                System.out.println(doc.content());
             } catch (Exception e) {
                 QueryResponse reply = QueryResponse.newBuilder()
                         .setCode("Failed")
                         .setContent(e.toString())
                         .build();
                 responses.add(reply);
+                System.out.println(reply.toString());
             }
         }
         return responses;
@@ -218,11 +224,11 @@ public class dbConnector extends AbstractActor {
 
         for (JsonID subMsg : msg.getDocList()) {
             System.out.println(subMsg.getBucket().toString());
-            if (subMsg.getBucket().toString().equals("main")) {
+            if (subMsg.getBucket().equals(Buckets.main)) {
                 queryBucket = this.bucketMain;
-            } else if (subMsg.getBucket().toString().equals("txn")) {
+            } else if (subMsg.getBucket().equals(Buckets.txn)) {
                 queryBucket = this.bucketTxn;
-            } else if (subMsg.getBucket().toString().equals("hxn")) {
+            } else if (subMsg.getBucket().equals(Buckets.hxn)) {
                 queryBucket = this.bucketHxn;
             } else {
                 QueryResponse reply = QueryResponse.newBuilder()
@@ -251,7 +257,8 @@ public class dbConnector extends AbstractActor {
         return responses;
     }
 
-    protected List<QueryResponse> kvUpsert(internal_messages.kvupsert msg) throws InvalidProtocolBufferException{
+    protected List<QueryResponse> kvUpsert(internal_messages.kvupsert msg) throws InvalidProtocolBufferException {
+        System.out.println("Got here_2");
         List<QueryResponse> responses = new ArrayList<QueryResponse>();
         Bucket queryBucket = null;
 
@@ -269,7 +276,7 @@ public class dbConnector extends AbstractActor {
                         .build();
                 responses.add(reply);
             }
-
+            System.out.println("Got here_3");
             try {
 
                 internal_messages.kvget testMsg = internal_messages.kvget.newBuilder()
@@ -282,18 +289,59 @@ public class dbConnector extends AbstractActor {
                 List<QueryResponse> reply_msg = kvGet(testMsg);
 
                 QueryResponse response = reply_msg.get(0);
-                JsonObject p1 = this.trans.stringToJsonObject(response.getContent());
-                JsonObject p2 = this.trans.stringToJsonObject(subMsg.getDocument());
-                if (this.trans.stringToJsonObject(response.getContent()).equals(this.trans.stringToJsonObject(subMsg.getDocument()))) {
+                JsonObject p1 = this.trans.stringToJsonObject("{}");
+                JsonObject p2 = this.trans.stringToJsonObject("{}");
+
+                try {
+                    p1 = this.trans.stringToJsonObject(response.getContent());
+                } catch (Exception e) {
+                    p1 = this.trans.stringToJsonObject("{}");
+                }
+
+                try {
+                    p2 = this.trans.stringToJsonObject(subMsg.getDocument());
+                } catch (Exception e) {
+                    p2 = this.trans.stringToJsonObject("{}");
+                }
+                System.out.println("p1: " + p1.toString());
+                System.out.println("p2: " + p2.toString());
+
+                if (p1.equals(p2)) {
                     System.out.println("They Match");
                 } else {
                     System.out.println("They Dont Match");
 //                    Need to add logic here to record changes in txn (first need to figure out how to get differeces.
-                    
+
                     Javers j = JaversBuilder.javers().build();
                     Diff diff = j.compare(p1, p2);
                     if (diff.hasChanges()) {
-                        System.out.println(diff);
+                        diff.groupByObject().forEach(byObject -> {
+                            byObject.get().forEach(change -> {
+                                try {
+                                    database.TxnLog txn = database.TxnLog.newBuilder()
+                                            .setDocId(subMsg.getDocID())
+                                            .addChanges(change.toString())
+                                            .build();
+                                    String j_doc = this.printer.print(txn);
+                                    JsonID doc = JsonID.newBuilder()
+                                            .setBucket(Buckets.txn)
+                                            .setDocID(subMsg.getDocID()+ "_" + Instant.now().toEpochMilli())
+                                            .setDocument(j_doc)
+                                            .build();
+                                    internal_messages.kvput put_doc = internal_messages.kvput.newBuilder()
+                                            .addDoc(doc)
+                                            .build();
+                                    System.out.println(kvPut(put_doc));
+//                                    String n1ql = new String("UPDATE `txn` use keys '" + subMsg.getDocID() + " set changes = ARRAY_APPEND(changes, " + change.toString() + ");");
+//                                    System.out.println(n1ql);
+//                                    System.out.println(this.bucketTxn.query(N1qlQuery.simple(n1ql)));
+                                } catch (Exception e) {
+
+                                }
+                                
+                            });
+                        });
+//                        System.out.print(j.getJsonConverter().toJson(diff));
                     }
                 }
                 JsonDocument doc = JsonDocument.create(subMsg.getDocID(), this.trans.stringToJsonObject(subMsg.getDocument()));
@@ -340,6 +388,7 @@ public class dbConnector extends AbstractActor {
                     getSender().tell(message, getSelf());
                 })
                 .match(internal_messages.kvupsert.class, (msg) -> {
+                    System.out.println("Got Here_1");
                     List<QueryResponse> message = kvUpsert(msg);
                     getSender().tell(message, getSelf());
                 })

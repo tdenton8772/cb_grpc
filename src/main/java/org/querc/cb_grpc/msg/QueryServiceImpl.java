@@ -112,6 +112,7 @@ public class QueryServiceImpl implements QueryService{
     public CompletionStage<QueryResponse> kvUpsert(JsonID in){
         List<QueryResponse> reply = null;
         String reply_string = new String();
+        System.out.println(in.getDocument());
         try {
                 internal_messages.kvupsert message = internal_messages.kvupsert.newBuilder()
                     .addDoc(in)
