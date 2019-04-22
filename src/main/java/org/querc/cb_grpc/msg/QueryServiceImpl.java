@@ -131,4 +131,12 @@ public class QueryServiceImpl implements QueryService{
                     .build();
         return CompletableFuture.completedFuture(result);
     }
+    
+    @Override
+    public CompletionStage<QueryResponse> anyService(AnyID in){
+        System.out.println(in.getDocList());
+        QueryResponse result = QueryResponse.newBuilder()
+                .build();
+        return CompletableFuture.completedFuture(result);
+    }
 }

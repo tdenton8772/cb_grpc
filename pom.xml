@@ -282,24 +282,6 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-            <!--<groupId>org.xolstice.maven.plugins</groupId>-->
-            <!--<artifactId>protobuf-maven-plugin</artifactId>-->
-            <!--<version>0.5.1</version>-->
-            <!--<configuration>-->
-            <!--<clearOutputDirectory>false</clearOutputDirectory>-->
-            <!--<outputDirectory>src/main/java</outputDirectory>-->
-            <!--<protocExecutable>/usr/local/bin/protoc</protocExecutable>-->
-            <!--</configuration>-->
-            <!--<executions>-->
-            <!--<execution>-->
-            <!--<goals>-->
-            <!--<goal>compile</goal>-->
-            <!--<goal>test-compile</goal>-->
-            <!--</goals>-->
-            <!--</execution>-->
-            <!--</executions>-->
-            <!--</plugin>-->
             <plugin>
                 <groupId>com.lightbend.akka.grpc</groupId>
                 <artifactId>akka-grpc-maven-plugin</artifactId>

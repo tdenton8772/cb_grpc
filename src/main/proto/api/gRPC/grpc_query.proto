@@ -1,6 +1,8 @@
 syntax = "proto3";
 package cb_grpc.msg.Main;
 
+import "google/protobuf/any.proto";
+
 option java_multiple_files = true;
 option java_package = "org.querc.cb_grpc.msg.grpc";
 option java_outer_classname = "QueryCouchbase";
@@ -15,6 +17,8 @@ service QueryService {
     rpc kvPut (JsonID) returns (QueryResponse) {}
 
     rpc kvUpsert (JsonID) returns (QueryResponse) {}
+
+    rpc anyService (AnyID) returns (QueryResponse) {}
 }
 
 enum Buckets {
@@ -42,3 +46,10 @@ message JsonID{
     string docID = 2;
     string document = 3;
 }
+
+message AnyID {
+    Buckets bucket = 1;
+    string docID = 2;
+    repeated google.protobuf.Any details = 3;
+}
+    
