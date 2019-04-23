@@ -9,12 +9,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static akka.pattern.Patterns.ask;
+//import akka.persistence.serialization.Message;
+import com.google.protobuf.Any;
+import java.util.Arrays;
+import com.google.protobuf.Message;
 import java.util.List;
 
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
+import org.querc.cb_grpc.msg.database.*;
+        
 public class QueryServiceImpl implements QueryService{
     private final Materializer mat;
     private final ActorSystem system;
@@ -134,7 +139,22 @@ public class QueryServiceImpl implements QueryService{
     
     @Override
     public CompletionStage<QueryResponse> anyService(AnyID in){
-        System.out.println(in.getDocList());
+//        System.out.println(in.getDocList());
+        for(Any x : in.getDetailsList()){
+            try{
+                System.out.println(x.getTypeUrl());
+                String clazzName = x.getTypeUrl().split("/")[1];
+                System.out.println(clazzName);
+                String[] split_name = clazzName.split("\\.");
+                String nameClass = String.join(".", Arrays.copyOfRange(split_name, 0, split_name.length - 1)) + "$" + split_name[split_name.length-1];
+                Class<Message> clazz = (Class<Message>) Class.forName(nameClass);
+                
+                System.out.println(x.unpack(clazz));
+                
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
         QueryResponse result = QueryResponse.newBuilder()
                 .build();
         return CompletableFuture.completedFuture(result);

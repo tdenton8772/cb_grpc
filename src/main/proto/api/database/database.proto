@@ -1,5 +1,5 @@
 syntax = "proto3";
-package cb_grpc.msg.Main;
+package org.querc.cb_grpc.msg.database;
 
 option java_package = "org.querc.cb_grpc.msg";
 option java_outer_classname = "database";

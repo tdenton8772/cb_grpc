@@ -223,6 +223,7 @@
                         <phase>install</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
+                            <goal>build-classpath</goal>
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
@@ -294,9 +295,9 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <protoPaths>
+<!--                    <protoPaths>
                         <protoPath>src/main/proto</protoPath>
-                    </protoPaths>
+                    </protoPaths>-->
                     <language>Java</language>
                     <generateClient>true</generateClient>
                     <generateServer>true</generateServer>

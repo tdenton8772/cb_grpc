@@ -1,7 +1,12 @@
 syntax = "proto3";
 package cb_grpc.msg.Main;
 
-import "google/protobuf/any.proto";
+// This needs to be uncommented for the akka-grpc proto builder but commented out for the protoc python builder
+import "any.proto";
+
+
+// This needs to be uncommented for the protoc python builder but commented out for the akka-grpc proto builder
+//import "google/protobuf/any.proto";
 
 option java_multiple_files = true;
 option java_package = "org.querc.cb_grpc.msg.grpc";
