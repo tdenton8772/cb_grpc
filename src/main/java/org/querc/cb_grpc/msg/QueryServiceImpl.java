@@ -19,8 +19,9 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import org.querc.cb_grpc.msg.database.*;
-        
-public class QueryServiceImpl implements QueryService{
+
+public class QueryServiceImpl implements QueryService {
+
     private final Materializer mat;
     private final ActorSystem system;
 
@@ -30,12 +31,12 @@ public class QueryServiceImpl implements QueryService{
     }
 
     @Override
-    public CompletionStage<QueryResponse> n1qlQuery(Query in){
+    public CompletionStage<QueryResponse> n1qlQuery(Query in) {
         QueryResponse result;
         try {
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), in, 5000);
             result = (QueryResponse) Await.result(future, Duration.apply(5, "seconds"));
-        } catch (Exception e){
+        } catch (Exception e) {
             result = QueryResponse.newBuilder()
                     .setCode("Failed")
                     .setContent(e.toString())
@@ -43,9 +44,9 @@ public class QueryServiceImpl implements QueryService{
         }
         return CompletableFuture.completedFuture(result);
     }
-    
+
     @Override
-    public CompletionStage<QueryResponse> kvGet(DocID in){
+    public CompletionStage<QueryResponse> kvGet(DocID in) {
         List<QueryResponse> reply = null;
         String reply_string = new String();
         try {
@@ -54,21 +55,21 @@ public class QueryServiceImpl implements QueryService{
                     .build();
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), message, 5000);
             reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
-            for (QueryResponse subMessage : reply){
+            for (QueryResponse subMessage : reply) {
                 reply_string += subMessage.getContent();
             }
-        } catch (Exception e){
-            
+        } catch (Exception e) {
+
         }
         QueryResponse result = QueryResponse.newBuilder()
-                    .setCode("Success")
-                    .setContent(reply_string)
-                    .build();
+                .setCode("Success")
+                .setContent(reply_string)
+                .build();
         return CompletableFuture.completedFuture(result);
     }
-    
+
     @Override
-    public CompletionStage<QueryResponse> kvDelete(DocID in){
+    public CompletionStage<QueryResponse> kvDelete(DocID in) {
         List<QueryResponse> reply = null;
         String reply_string = new String();
         try {
@@ -77,85 +78,84 @@ public class QueryServiceImpl implements QueryService{
                     .build();
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), message, 5000);
             reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
-            for (QueryResponse subMessage : reply){
+            for (QueryResponse subMessage : reply) {
                 reply_string += subMessage.getContent();
             }
-        } catch (Exception e){
-            
+        } catch (Exception e) {
+
         }
         QueryResponse result = QueryResponse.newBuilder()
-                    .setCode("Success")
-                    .setContent(reply_string)
-                    .build();
+                .setCode("Success")
+                .setContent(reply_string)
+                .build();
         return CompletableFuture.completedFuture(result);
     }
-    
+
     @Override
-    public CompletionStage<QueryResponse> kvPut(JsonID in){
+    public CompletionStage<QueryResponse> kvPut(JsonID in) {
         List<QueryResponse> reply = null;
         String reply_string = new String();
         try {
-                internal_messages.kvput message = internal_messages.kvput.newBuilder()
+            internal_messages.kvput message = internal_messages.kvput.newBuilder()
                     .addDoc(in)
                     .build();
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), message, 5000);
             reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
-            for (QueryResponse subMessage : reply){
+            for (QueryResponse subMessage : reply) {
                 reply_string += subMessage.getContent();
             }
-        } catch (Exception e){
-            
+        } catch (Exception e) {
+
         }
         QueryResponse result = QueryResponse.newBuilder()
-                    .setCode("Success")
-                    .setContent(reply_string)
-                    .build();
+                .setCode("Success")
+                .setContent(reply_string)
+                .build();
         return CompletableFuture.completedFuture(result);
     }
-    
+
     @Override
-    public CompletionStage<QueryResponse> kvUpsert(JsonID in){
+    public CompletionStage<QueryResponse> kvUpsert(JsonID in) {
         List<QueryResponse> reply = null;
         String reply_string = new String();
         System.out.println(in.getDocument());
         try {
-                internal_messages.kvupsert message = internal_messages.kvupsert.newBuilder()
+            internal_messages.kvupsert message = internal_messages.kvupsert.newBuilder()
                     .addDoc(in)
                     .build();
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), message, 5000);
             reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
-            for (QueryResponse subMessage : reply){
+            for (QueryResponse subMessage : reply) {
                 reply_string += subMessage.getContent();
             }
-        } catch (Exception e){
-            
+        } catch (Exception e) {
+
         }
         QueryResponse result = QueryResponse.newBuilder()
-                    .setCode("Success")
-                    .setContent(reply_string)
-                    .build();
+                .setCode("Success")
+                .setContent(reply_string)
+                .build();
         return CompletableFuture.completedFuture(result);
     }
-    
+
     @Override
-    public CompletionStage<QueryResponse> anyService(AnyID in){
-//        System.out.println(in.getDocList());
-        for(Any x : in.getDetailsList()){
-            try{
-                System.out.println(x.getTypeUrl());
-                String clazzName = x.getTypeUrl().split("/")[1];
-                System.out.println(clazzName);
-                String[] split_name = clazzName.split("\\.");
-                String nameClass = String.join(".", Arrays.copyOfRange(split_name, 0, split_name.length - 1)) + "$" + split_name[split_name.length-1];
-                Class<Message> clazz = (Class<Message>) Class.forName(nameClass);
-                
-                System.out.println(x.unpack(clazz));
-                
-            } catch (Exception e){
-                e.printStackTrace();
+    public CompletionStage<QueryResponse> anyService(AnyID in) {
+        List<QueryResponse> reply = null;
+        String reply_string = new String();
+
+        try {
+            final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), in, 5000);
+            reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
+            for (QueryResponse subMessage : reply) {
+                reply_string += subMessage.getContent();
             }
+        } catch (Exception e) {
+
         }
+
         QueryResponse result = QueryResponse.newBuilder()
+                .setCode("Success")
+                .setContent(reply_string)
                 .build();
         return CompletableFuture.completedFuture(result);
     }

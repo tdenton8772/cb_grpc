@@ -3,6 +3,7 @@ package org.querc.cb_grpc;
 import akka.actor.AbstractActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import static akka.pattern.Patterns.ask;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
@@ -18,6 +19,8 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.N1qlQueryResult;
 import com.couchbase.client.java.transcoder.JsonTranscoder;
+import com.google.protobuf.Any;
+import com.google.protobuf.Message;
 
 import java.util.*;
 import java.util.Properties;
@@ -31,6 +34,9 @@ import org.querc.cb_grpc.msg.database;
 
 import org.querc.cb_grpc.msg.grpc.*;
 import org.querc.cb_grpc.msg.internal_messages;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 public class dbConnector extends AbstractActor {
 
@@ -363,6 +369,34 @@ public class dbConnector extends AbstractActor {
         return responses;
     }
 
+    protected List<QueryResponse> anyHandler(AnyID msg) throws InvalidProtocolBufferException {
+        List<QueryResponse> responses = new ArrayList<QueryResponse>();
+        List<QueryResponse> reply = null;
+        
+        for(Any x : msg.getDetailsList()){
+            try{
+                String clazzName = x.getTypeUrl().split("/")[1];
+                String[] split_name = clazzName.split("\\.");
+                String nameClass = String.join(".", Arrays.copyOfRange(split_name, 0, split_name.length - 1)) + "$" + split_name[split_name.length-1];
+                Class<Message> clazz = (Class<Message>) Class.forName(nameClass);
+
+                internal_messages.kvupsert subMsg = internal_messages.kvupsert.newBuilder()
+                        .addDoc(JsonID.newBuilder()
+                                .setDocID(msg.getDocID())
+                                .setDocument(this.printer.print(x.unpack(clazz)))
+                                .build())
+                        .build();
+                
+                final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), subMsg, 5000);
+                reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
+                responses.addAll(reply);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return responses;
+    }
+    
     @Override
     public Receive createReceive() {
         return receiveBuilder()
@@ -388,8 +422,11 @@ public class dbConnector extends AbstractActor {
                     getSender().tell(message, getSelf());
                 })
                 .match(internal_messages.kvupsert.class, (msg) -> {
-                    System.out.println("Got Here_1");
                     List<QueryResponse> message = kvUpsert(msg);
+                    getSender().tell(message, getSelf());
+                })
+                .match(AnyID.class, (msg) -> {
+                    List<QueryResponse> message = anyHandler(msg);
                     getSender().tell(message, getSelf());
                 })
                 .matchAny(o -> System.out.println("Unknown Message in dbConnector: " + o))
