@@ -1,0 +1,118 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.Quote;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Quote";
+
+message NewQuote {
+    string jsonType = 1;
+    string customer = 2;
+    string invoice_address = 3; //confused about this one? probably needs to be an FK
+    string delivery_address = 4; //confused about this one? probably needs to be an FK
+    string po_number = 5;
+    repeated string po_submissions = 6;
+    string expected_ship_date = 7;
+    string confirm_ship_date = 8;
+    string price_list = 9; // this should be an int or some other kind of FK I think
+    string payment_terms = 10; // probably enum defined in another proto file
+    repeated QuoteOrderLines orderLines = 11;
+    string docID = 12;
+    string created_by = 13;
+    string opportunity = 14;
+}
+
+message QuoteOrderLines {
+    string product = 1;
+    string description = 2;
+    uint32 qty = 3;
+    string uom = 4;
+    repeated string analytic_tags = 5;
+    float unit_price = 6;
+    float taxes = 7;
+    float discount = 8;
+}
+
+message UpdateQuoteCustomer {
+    string docID = 1;
+    string changed_by = 2;
+    string customer = 3;
+}
+
+message UpdateQuoteInvoiceAddress {
+    string docID = 1;
+    string changed_by = 2;
+    string invoice_address = 3; //confused about this one? probably needs to be an FK
+}
+
+message UpdateQuoteDeliveryAddress {
+    string docID = 1;
+    string changed_by = 2;
+    string delivery_address = 3; //confused about this one? probably needs to be an FK
+}
+
+message UpdateQuotePONumber {
+    string docID = 1;
+    string changed_by = 2;
+    string po_number = 3;
+}
+
+message AddQuotePOSubmissions {
+    string docID = 1;
+    string changed_by = 2;
+    repeated string po_submissions = 3;
+}
+
+message RemoveQuotePOSubmissions {
+    string docID = 1;
+    string changed_by = 2;
+    uint32 po_submission_index = 3;
+}
+
+message UpdateQuoteExpectedShipDate {
+    string docID = 1;
+    string changed_by = 2;
+    string expected_ship_date = 7;
+}
+
+message UpdateQuoteConfirmShipDate {
+    string docID = 1;
+    string changed_by = 2;
+    string confirm_ship_date = 3;
+}
+
+message UpdateQuotePriceList {
+    string docID = 1;
+    string changed_by = 2;
+    string price_list = 3; // this should be an int or some other kind of FK I think
+}
+
+message UpdateQuotePaymentTerms {
+    string docID = 1;
+    string changed_by = 2;
+    string payment_terms = 3; // probably enum defined in another proto file
+}
+
+message AddQuoteOrderLines {
+    string docID = 1;
+    string changed_by = 2;
+    repeated QuoteOrderLines orderLines = 3;
+}
+
+message RemoveQuoteOrderLines {
+    string docID = 1;
+    string changed_by = 2;
+    uint32 order_line_index = 3;
+}
+
+message UpdateQuoteOrderLine {
+    string docID = 1;
+    string changed_by = 2;
+    uint32 order_line_index = 3;
+    QuoteOrderLines orderLine = 4;
+}
+
+message UpdateQuoteOpportunity {
+    string docID = 1;
+    string changed_by = 2;
+    string opportunity = 3;
+}

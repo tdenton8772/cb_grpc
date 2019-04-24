@@ -1,0 +1,252 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.Opportunity;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Opportunity";
+
+message NewOpportunity {
+	string jsonType = 1;
+	string customer = 2;
+	string create_date = 3; // Need to decide on datetype for CB
+	string last_update_date = 4;
+	repeated string quotes = 5;
+    repeated string attachments = 6;
+    string title = 7;
+    string territory = 8;
+    string sales_person = 9;
+    string sales_team = 10;
+    float expected_revenue = 11;
+    uint32 rating = 12;
+    string expected_closing = 13;
+    enum Stage {
+        defaultStage = 0;
+        stage1 = 1;
+    }
+    string next_activity = 14;
+    repeated string tags = 15;
+    repeated string internal_notes = 16;
+    string campaign = 17;
+    enum Medium {
+        defaultMedium = 0;
+        medium1 = 1;
+    }
+    string source = 18;
+    string contact_name = 19;
+    string contact_title = 20;
+    string job_position = 21;
+    string mobile = 22;
+    string fax = 23;
+    bool opt_out = 24;
+    string referred_by = 25;
+    repeated OpportunityChatter chatter = 26;
+    bool active = 27;
+    string docID = 28;
+    string created_by = 29;
+}
+
+message OpportunityChatter {
+    string changed_by = 1;
+    repeated string changes = 2;
+    string change_date = 3;
+}
+
+
+message UpdateOpportunityCustomer {
+    string docID = 1;
+    string changed_by = 2;
+    string customer = 3;
+}
+
+message AddOpportunityQuote {
+    string docID = 1;
+    string changed_by = 2;
+    string quote = 3;
+}
+
+message RemoveOpportunityQuote {
+    string docID = 1;
+    string changed_by = 2;
+    string quote = 3;
+}
+
+message AddOpportunityAttachment {
+    string docID = 1;
+    string changed_by = 2;
+    string attachment = 3;
+}
+
+message RemoveOpportunityAttachment {
+    string docID = 1;
+    string changed_by = 2;
+    string attachment = 3;
+}
+
+message UpdateOpportunityTitle {
+    string docID = 1;
+    string changed_by = 2;
+    string title = 3;
+}
+
+message UpdateOpportunityTerritory {
+    string docID = 1;
+    string changed_by = 2;
+    string territory = 3;
+}
+
+message UpdateOpportunitySalesPerson {
+    string docID = 1;
+    string changed_by = 2;
+    string sales_person = 3;
+}
+
+message UpdateOpportunitySalesTeam {
+    string docID = 1;
+    string changed_by = 2;
+    string sales_team = 3;
+}
+
+message UpdateOpportunityExpectedRevenue {
+   string docID = 1;
+   string changed_by = 2;
+   float expected_revenue = 3;
+}
+
+message UpdateOpportunityRating {
+    string docID = 1;
+    string changed_by = 2;
+    uint32 rating = 3;
+}
+
+message UpdateOpportunityExpectedClosing {
+    string docID = 1;
+    string changed_by = 2;
+    string expectedClosing = 3;
+}
+
+message UpdateOpportunityStage {
+    string docID = 1;
+    string changed_by = 2;
+    enum Stage {
+        defaultStage = 0;
+        stage1 = 1;
+    }
+}
+message UpdateOpportunityNextActivity {
+    string docID = 1;
+    string changed_by = 2;
+    string next_activity = 3;
+}
+
+message AddOpportunityTags {
+    string docID = 1;
+    string changed_by = 2;
+    repeated string tags = 3;
+}
+
+
+message RemoveOpportunityTags {
+    string docID = 1;
+    string changed_by = 2;
+    repeated string tags = 3;
+}
+
+message AddOpportunityInternalNotes {
+    string docID = 1;
+    string changed_by = 2;
+    repeated string internal_notes = 3;
+}
+
+message UpdateOpportunityCampaign {
+    string docID = 1;
+    string changed_by = 2;
+    string campaign = 3;
+}
+
+message UpdateOpportunityMedium {
+    string docID = 1;
+    string changed_by = 2;
+    enum Medium {
+        defaultMedium = 0;
+        medium1 = 1;
+    }
+}
+
+message UpdateOpportunitySource {
+    string docID = 1;
+    string changed_by = 2;
+    string source = 3;
+}
+
+message UpdateOpportunityContactName {
+    string docID = 1;
+    string changed_by = 2;
+    string contact_name = 3;
+}
+
+message UpdateOpportunityContactTitle {
+    string docID = 1;
+    string changed_by = 2;
+    string contact_title = 3;
+}
+
+message UpdateOpportunityJobPosition {
+    string docID = 1;
+    string changed_by = 2;
+    string job_position = 3;
+}
+
+message UpdateOpportunityMobile {
+    string docID = 1;
+    string changed_by = 2;
+    string mobile = 3;
+}
+
+message UpdateOpportunityFax {
+    string docID = 1;
+    string changed_by = 2;
+    string fax = 3;
+}
+
+message UpdateOpportunityOptOut {
+    string docID = 1;
+    string changed_by = 2;
+    bool opt_out = 3;
+}
+
+message UpdateOpportunityReferredBy {
+    string docID = 1;
+    string changed_by = 2;
+    string referred_by = 3;
+}
+
+message AddOpportunityChatter {
+    string docID = 1;
+    string changed_by = 2;
+    repeated OpportunityChatter chatter = 3;
+}
+
+message UpdateOpportunityActive {
+    string docID = 1;
+    string changed_by = 2;
+    bool active = 3;
+}
+
+message OpportunityAction{
+    enum ActionType{
+        UNKNOWN = 0;
+        CREATE = 1;
+        UPDATE = 2;
+        DELETE = 3;
+        UPSERT = 4;
+        GET = 5;
+    }
+    message Params {
+        string key = 1;
+        string value = 2;
+    }
+    string docID = 1;
+    ActionType actionType = 2;
+    repeated Params params = 3;
+    string created_by = 4;
+
+}

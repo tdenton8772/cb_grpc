@@ -1,8 +1,8 @@
 syntax = "proto3";
-package org.querc.cb_grpc.msg.database;
+package org.querc.cb_grpc.msg.Database;
 
 option java_package = "org.querc.cb_grpc.msg";
-option java_outer_classname = "database";
+option java_outer_classname = "Database";
 
 
 message Connected {

@@ -18,7 +18,7 @@ import java.util.List;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import org.querc.cb_grpc.msg.database.*;
+import org.querc.cb_grpc.msg.Database.*;
 
 public class QueryServiceImpl implements QueryService {
 
@@ -145,12 +145,12 @@ public class QueryServiceImpl implements QueryService {
 
         try {
             final Future<Object> future = ask(system.actorSelection("/user/dbConnector"), in, 5000);
-            reply = (List<QueryResponse>) Await.result(future, Duration.apply(5, "seconds"));
+            reply = (List<QueryResponse>) Await.result(future, Duration.apply(1, "seconds"));
             for (QueryResponse subMessage : reply) {
                 reply_string += subMessage.getContent();
             }
         } catch (Exception e) {
-
+            System.out.println(e);
         }
 
         QueryResponse result = QueryResponse.newBuilder()

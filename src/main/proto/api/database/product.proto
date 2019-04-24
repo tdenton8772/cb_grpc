@@ -1,0 +1,79 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.Product;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Product";
+
+message NewProduct {
+    string jsonType = 1;
+    bool can_be_sold = 2;
+    bool can_be_purchased = 3;
+    string product_type = 4; // probably should be enum
+    string reference_code = 5;
+    uint64 barcode = 6;
+    string hs_code = 7;
+    string internal_category = 8;
+    float price = 9;
+    string uom = 10; // probably enum
+    string current_bom = 11;
+}
+
+message UpdateProductCanBeSold {
+    string docID = 1;
+    string changed_by = 2;
+    bool can_be_sold = 3;
+}
+
+message UpdateProductCanBePurchased {
+     string docID = 1;
+     string changed_by = 2;
+     bool can_be_purchased = 3;
+}
+
+message UpdateProductProductType {
+    string docID = 1;
+    string changed_by = 2;
+    string product_type = 3;
+}
+
+message UpdateProductReferenceCode {
+    string docID = 1;
+    string changed_by = 2;
+    string reference_code = 3;
+}
+
+message UpdateProductBarCode {
+    string docID = 1;
+    string changed_by = 2;
+    uint64 barcode = 3;
+}
+
+message UpdateProductHsCode {
+    string docID = 1;
+    string changed_by = 2;
+    string hs_code = 3;
+}
+
+message UpdateProductInternalCategory {
+    string docID = 1;
+    string changed_by = 2;
+    string internal_category = 3;
+}
+
+message UpdateProductPrice {
+    string docID = 1;
+    string changed_by = 2;
+    float price = 3;
+}
+
+message UpdateProductUom {
+    string docID = 1;
+    string changed_by = 2;
+    string uom = 3; // probably enum
+}
+
+message UpdateProductCurrentBom {
+    string docID = 1;
+    string changed_by = 2;
+    string current_bom = 11;
+}

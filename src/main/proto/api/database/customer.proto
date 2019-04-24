@@ -1,0 +1,102 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.Customer;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Customer";
+
+message NewCustomer {
+    string jsonType = 1;
+    string docID = 2;
+    string name = 3;
+    uint32 company_id = 4; // this can probably be turned into a string, or an array of strings
+    string website = 5;
+    string create_date = 6;
+    bool active = 7;
+    string street = 8;
+    bool supplier = 9;
+    string city = 10;
+    string zip = 11;
+    string title = 12;
+    string country = 13; // should probably be an FK for a country so there can be a doc join
+    string commercial_company_name = 14;
+    bool employee = 15;
+    string created_by = 16;
+}
+
+message UpdateCustomerName {
+    string docID = 1;
+    string changed_by = 2;
+    string name = 3;
+}
+
+message UpdateCustomerCustomer {
+    string docID = 1;
+    string changed_by = 2;
+    uint32 company_id = 3;
+}
+
+message UpdateCustomerWebsite {
+    string docID = 1;
+    string changed_by = 2;
+    string website = 3;
+}
+
+message UpdateCustomerCreateDate {
+    string docID = 1;
+    string changed_by = 2;
+    string create_date = 3;
+}
+
+message UpdateCustomerActive {
+    string docID = 1;
+    string changed_by = 2;
+    bool active = 3;
+}
+
+message UpdateCustomerStreet {
+    string docID = 1;
+    string changed_by = 2;
+    string street = 3;
+}
+
+message UpdateCustomerSupplier {
+    string docID = 1;
+    string changed_by = 2;
+    bool supplier = 3;
+}
+
+message UpdateCustomerCity {
+    string docID = 1;
+    string changed_by = 2;
+    string city = 3;
+}
+
+message UpdateCustomerZip {
+    string docID = 1;
+    string changed_by = 2;
+    string zip = 3;
+}
+
+message UpdateCustomerTitle {
+    string docID = 1;
+    string changed_by = 2;
+    string title = 3;
+}
+
+message UpdateCustomerCountry {
+    string docID = 1;
+    string changed_by = 2;
+    string country = 3;
+}
+
+message UpdateCustomerCommercialCompanyName {
+    string docID = 1;
+    string changed_by = 2;
+    string commercial_company_name = 3;
+}
+
+message UpdateCustomerEmployee {
+    string docID = 1;
+    string changed_by = 2;
+    bool employee = 3;
+}

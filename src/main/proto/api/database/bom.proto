@@ -1,0 +1,9 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.bom;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Bom";
+
+message NewBom {
+
+}

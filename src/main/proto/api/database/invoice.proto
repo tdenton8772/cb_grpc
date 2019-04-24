@@ -1,0 +1,69 @@
+syntax = "proto3";
+package org.querc.cb_grpc.msg.Invoice;
+
+option java_package = "org.querc.cb_grpc.msg";
+option java_outer_classname = "Invoice";
+
+message newInvoice {
+    string jsonType = 1; // this will be invoice
+    string docID = 2;
+    string comment = 3;
+    string date_due = 4;
+    string create_date = 5;
+    string partner_bank_id = 6; // this will probably go away
+    string number = 7; // Not sure why this is a string called number. Pretty confusing
+    uint32 journal_id = 8; // going to need to be an FK to a journal
+    float amount_total_company_signed = 9;
+    float residual = 10;
+    uint32 partner_id = 11;
+    string create_uid = 12;
+    float amount_untaxed = 13;
+    string reference = 14;
+    float residual_company_signed = 15;
+    float amount_total_signed = 16;
+    string message_last_post = 17;
+    uint32 company_id = 18;
+    float amount_tax = 19;
+    enum state {
+        defaultValue = 0;
+        paid = 1;
+    }
+    string move_id = 20;
+    bool sent = 21;
+    uint32 account_id = 22;
+    bool reconciled = 23;
+    string origin = 24;
+    string move_name = 25;
+    uint32 reference_type = 26;
+    string date_invoice = 27;
+    uint32 payment_term_id = 28;
+    string write_date = 29;
+    float residual_signed = 30;
+    string date = 31;
+    uint32 user_id = 32;
+    uint32 write_uid = 33;
+    uint32 fiscal_position_id = 34;
+    float amount_total = 35;
+    float amount_untaxed_signed = 36;
+    uint32 currency_id = 37;
+    uint32 refund_invoice_id = 38;
+    string name = 39;
+    uint32 commercial_partner_id = 40;
+    uint32 partner_shipping_id = 41;
+    uint32 team_id = 42;
+    string campaign_id = 43;
+    enum Medium {
+            defaultMedium = 0;
+            medium1 = 1;
+    }
+    enum Source {
+        defaultSource = 0;
+        source1 = 1;
+    }
+    uint32 incoterms_id = 44;
+    string purchase_id = 45;
+    string x_sales_territory = 46;
+    bool auto_invoice_id = 47;
+    bool auto_generated = 48;
+
+}
