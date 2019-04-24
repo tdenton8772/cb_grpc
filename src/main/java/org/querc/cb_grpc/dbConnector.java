@@ -331,7 +331,7 @@ public class dbConnector extends AbstractActor {
                                     internal_messages.kvput put_doc = internal_messages.kvput.newBuilder()
                                             .addDoc(doc)
                                             .build();
-//                                    System.out.println(kvPut(put_doc));
+                                    kvPut(put_doc);
                                 } catch (Exception e) {
 
                                 }
