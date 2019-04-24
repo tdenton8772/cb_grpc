@@ -3,6 +3,8 @@ package org.querc.cb_grpc;
 import akka.actor.AbstractActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 import static akka.pattern.Patterns.ask;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
@@ -39,8 +41,8 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
 public class dbConnector extends AbstractActor {
-
     final ActorSystem system = getContext().getSystem();
+    LoggingAdapter log = Logging.getLogger(system, this);
     private Properties m_props;
     static private Cluster cluster;
     static private Bucket bucketMain;
@@ -48,6 +50,7 @@ public class dbConnector extends AbstractActor {
     static private Bucket bucketTxn;
     static private JsonFormat.Printer printer;
     static private JsonTranscoder trans;
+    static private Javers j;
 
     static public Props props(Properties p) {
         return Props.create(dbConnector.class, () -> new dbConnector(p));
@@ -56,6 +59,7 @@ public class dbConnector extends AbstractActor {
     public dbConnector(Properties p) {
         this.printer = JsonFormat.printer().includingDefaultValueFields();
         this.trans = new JsonTranscoder();
+        this.j = JaversBuilder.javers().build();
         System.out.println(getSelf());
         this.m_props = p;
         String dbClusterList = m_props.getProperty("DBCluster");
@@ -290,9 +294,10 @@ public class dbConnector extends AbstractActor {
                 List<QueryResponse> reply_msg = kvGet(testMsg);
 
                 QueryResponse response = reply_msg.get(0);
-                JsonObject p1 = this.trans.stringToJsonObject("{}");
-                JsonObject p2 = this.trans.stringToJsonObject("{}");
 
+                JsonObject p1 = null;
+                JsonObject p2 = null;
+                
                 try {
                     p1 = this.trans.stringToJsonObject(response.getContent());
                 } catch (Exception e) {
@@ -304,16 +309,14 @@ public class dbConnector extends AbstractActor {
                 } catch (Exception e) {
                     p2 = this.trans.stringToJsonObject("{}");
                 }
-//                System.out.println("p1: " + p1.toString());
-//                System.out.println("p2: " + p2.toString());
 
                 if (p1.equals(p2)) {
                     System.out.println("They Match");
                 } else {
                     System.out.println("They Dont Match");
                     
-                    Javers j = JaversBuilder.javers().build();
-                    Diff diff = j.compare(p1, p2);
+                    
+                    Diff diff = this.j.compare(p1, p2);
                     if (diff.hasChanges()) {
                         diff.groupByObject().forEach(byObject -> {
                             byObject.get().forEach(change -> {
